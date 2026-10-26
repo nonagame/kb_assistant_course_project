@@ -1,0 +1,135 @@
+
+### ES-INTRO-01 健康检查 /_cluster/health是Elasticsearch 官方已经定义好的“查看集群健康状态”的接口。
+GET http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=30s
+
+### ES-INTRO-02 观察标准分析器    /_analyze是 ES 自带的“分析一段文字”只展示分析结果，不保存文档的接口
+POST http://127.0.0.1:9200/_analyze
+Content-Type: application/json
+
+{
+  "analyzer": "standard",
+  "text": "OPS2026"
+}
+
+### ES-INTRO-03 创建文字通知索引  PUT /kb_es_intro_v1创建一个名为 kb_es_intro_v1 的索引
+PUT http://127.0.0.1:9200/kb_es_intro_v1
+Content-Type: application/json
+
+{
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "title": {"type": "text"},
+      "text": {"type": "text"},
+      "visibility": {"type": "keyword"}
+    }
+  }
+}
+
+### ES-INTRO-04 写入公开通知
+PUT http://127.0.0.1:9200/kb_es_intro_v1/_doc/1?refresh=wait_for
+Content-Type: application/json
+
+{
+  "title": "项目上线公告",
+  "text": "项目代号 OPS2026 将在周五进行公开演示。",
+  "visibility": "public"
+}
+
+### ES-INTRO-05 写入内部通知
+PUT http://127.0.0.1:9200/kb_es_intro_v1/_doc/2?refresh=wait_for
+Content-Type: application/json
+
+{
+  "title": "项目内部安排",
+  "text": "项目代号 OPS2026 的内部演练安排在周四下午完成。",
+  "visibility": "internal"
+}
+
+### ES-INTRO-06 写入另一条公开通知
+PUT http://127.0.0.1:9200/kb_es_intro_v1/_doc/3?refresh=wait_for
+Content-Type: application/json
+
+{
+  "title": "培训通知",
+  "text": "项目代号 HR2026 的新员工培训安排在下周一。",
+  "visibility": "public"
+}
+
+### ES-INTRO-07 全文搜索 OPS2026
+POST http://127.0.0.1:9200/kb_es_intro_v1/_search
+Content-Type: application/json
+
+{
+  "size": 10,
+  "query": {
+    "match": {
+      "text": "OPS2026"
+    }
+  }
+}
+
+### ES-INTRO-08 全文搜索加公开过滤
+POST http://127.0.0.1:9200/kb_es_intro_v1/_search
+Content-Type: application/json
+
+{
+  "size": 10,
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "text": "OPS2026"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "visibility": "public"
+          }
+        }
+      ]
+    }
+  }
+}
+
+### ES-INTRO-09 搜索另一个项目编号
+POST http://127.0.0.1:9200/kb_es_intro_v1/_search
+Content-Type: application/json
+
+{
+  "size": 10,
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "text": "HR2026"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "visibility": "public"
+          }
+        }
+      ]
+    }
+  }
+}
+
+###
+POST http://127.0.0.1:9200/kb_es_intro_v1/_search
+Content-Type: application/json
+
+{
+  "size": 10,
+  "query": {
+    "match": {
+      "text": "OPS2026"
+    }
+  }
+}

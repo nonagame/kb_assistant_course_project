@@ -1,0 +1,1181 @@
+# Test your FastAPI endpoints
+
+
+@documentId = 6
+@documentSourcePath = data/docs/public/
+
+GET http://127.0.0.1:8000/
+Accept: application/json
+
+###
+GET http://127.0.0.1:8000/hello/User
+Accept: application/json
+
+###
+GET http://127.0.0.1:8000/auth/sendcode?email=2569403543@qq.com
+Accept: application/json
+
+###
+POST http://127.0.0.1:8000/auth/register
+Content-Type: application/json
+
+{
+    "username":"studentO1",
+    "email":"2569403543@qq.com",
+    "password":"123456",
+    "confirm_password":"123456",
+    "code":"7124",
+    "full_name":"课程学生"
+}
+
+
+###
+POST http://127.0.0.1:8000/auth/login
+Content-Type: application/json
+
+{
+    "account":"2569403543@qq.com",
+    "password":"123456"
+
+}
+
+###
+POST http://127.0.0.1:8000/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6InB1YmxpYyIsInR5cGUiOiJyZWZyZXNoIiwiZXhwIjoxNzk2NzIyNDQ4fQ.a9Q3f7KtE4tfcTBXY4WbpC6l5LavRPP3AGsXpb1eY6Q"
+}
+
+
+### /auth/me要接收的是access_token，而不是refresh_token
+PUT http://127.0.0.1:8000/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6InB1YmxpYyIsInR5cGUiOiJhY2Nlc3MiLCJleHAiOjE3OTA3NTQ3MjN9.JPyxrAYTavy9bZF98krDMDjKHhLmN7j2_LeAKj5Xz9k
+Content-Type: application/json
+
+{
+  "username": "student023_new",
+  "email": "9999@qq.com",
+  "full_name": "更新后的课程学生01"
+}
+
+
+
+### 修改密码：给我旧密码和新密码，给我修收成新的
+PUT http://127.0.0.1:8000/auth/me/password
+Authorization: Bearer  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6InB1YmxpYyIsInR5cGUiOiJhY2Nlc3MiLCJleHAiOjE3OTA3NTU2NTV9.mfjLOKbnr8cJ7tNrfViBhZtyd7DGTtIoW6orXbkeVJE
+Content-Type: application/json
+
+{
+  "current_password": "111111",
+  "new_password": "123456"
+}
+
+###
+POST http://127.0.0.1:8000/auth/login
+Content-Type: application/json
+
+{
+    "account":"9999@qq.com",
+    "password":"123456"
+
+}
+
+### access_token有时效
+@baseUrl = http://127.0.0.1:8000
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTc5MjgzODg1Nn0.LT_MHZyaLJFIkNwf4f0ivSMA_OKdbcOy3faMlcmsgzo
+@publicToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6InB1YmxpYyIsInR5cGUiOiJhY2Nlc3MiLCJleHAiOjE3OTI4Mzg4Njd9.Aug23yTGMD-72evNNDN8_DcSSAnV6b1Iyizl1WBTLTc
+@publicUserId = fwj
+@otherToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6InB1YmxpYyIsInR5cGUiOiJhY2Nlc3MiLCJleHAiOjE3OTE4Nzk2NTB9.alGdPeV_nTLSRrQtubPsEAvFLP5KKTOe9FdiNLWmWgc
+@hrToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0Iiwicm9sZSI6ImhyIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTc5MTg3OTY3M30.YJ0ujcBUy8WDS5ozlA2gJxz6Qijw69EQrKDRzOshBY0
+
+### 核对管理员身份
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{adminToken}}
+
+### 核对普通用户身份
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{publicToken}}
+
+### 上传企业制度文件
+# @timeout 300
+POST {{baseUrl}}/knowledge/documents
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data;boundary=KnowledgeBoundary
+
+--KnowledgeBoundary
+Content-Disposition:form-data;name="visibility"
+
+public
+--KnowledgeBoundary
+Content-Disposition: form-data;name="file"; filename="明川科技员工日常办公与业务管理制度.md"
+Content-Type: text/markdown;charset=utf-8
+
+< ./data/sample/明川科技员工日常办公与业务管理制度.md
+--KnowledgeBoundary--
+
+#@documentId = 填写阶段C响应中的实际id,在kb_documents表可以直接查看
+#@documentSourcePath = 填写阶段C响应中的实际source_path，位于data文件夹
+
+### 分页查询文档-查看上传记录
+GET {{baseUrl}}/knowledge/documents?page=1&page_size=20
+Authorization: Bearer {{adminToken}}
+
+### 不允许第0页
+GET {{baseUrl}}/knowledge/documents?page=0&page_size=20
+Authorization: Bearer {{adminToken}}
+
+### 不允许每页超过100条
+GET {{baseUrl}}/knowledge/documents?page=1&page_size=101
+Authorization: Bearer {{adminToken}}
+
+### 普通用户无管理列表权限
+GET {{baseUrl}}/knowledge/documents
+Authorization: Bearer {{publicToken}}
+
+### 修改文档可见范围：将公开文档改为内部文档
+# @timeout 300
+PATCH {{baseUrl}}/knowledge/documents/{{documentId}}/visibility
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"visibility": "internal"}
+
+### 删除本模块上传的文件
+DELETE {{baseUrl}}/knowledge/documents/{{documentId}}
+Authorization: Bearer {{adminToken}}
+
+### 删除后查询列表
+GET {{baseUrl}}/knowledge/documents?page=1&page_size=20
+Authorization: Bearer {{adminToken}}
+
+### 重复删除
+DELETE {{baseUrl}}/knowledge/documents/{{documentId}}
+Authorization: Bearer {{adminToken}}
+
+### 重建当前知识库
+# @timeout 300
+POST {{baseUrl}}/knowledge/reindex
+Authorization: Bearer {{adminToken}}
+
+### 普通用户不能重建
+POST {{baseUrl}}/knowledge/reindex
+Authorization: Bearer {{publicToken}}
+
+### 普通用户查看索引状态
+GET {{baseUrl}}/knowledge/status
+Authorization: Bearer {{publicToken}}
+
+### 管理员查看索引状态
+GET {{baseUrl}}/knowledge/status
+Authorization: Bearer {{adminToken}}
+
+### 未登录不能查询
+GET {{baseUrl}}/knowledge/status
+
+
+### A1 管理员查询角色
+GET {{baseUrl}}/admin/roles
+Authorization: Bearer {{adminToken}}
+
+### A1 普通用户查询角色
+GET {{baseUrl}}/admin/roles
+Authorization: Bearer {{publicToken}}
+
+### A1 未登录查询角色
+GET {{baseUrl}}/admin/roles
+
+### A2 管理员查询权限字典
+GET {{baseUrl}}/admin/permissions
+Authorization: Bearer {{adminToken}}
+
+### A2 普通用户查询权限字典
+GET {{baseUrl}}/admin/permissions
+Authorization: Bearer {{publicToken}}
+
+### A2 未登录查询权限字典
+GET {{baseUrl}}/admin/permissions
+
+### A3 清理重复和空白权限码
+PUT {{baseUrl}}/admin/roles/public/permissions
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"permission_codes":[
+  "kb.view_public",
+  "kb.view_internal",
+  "system.manage_users"
+]}
+
+### A3 拒绝移除public必要权限
+PUT {{baseUrl}}/admin/roles/public/permissions
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"permission_codes":[]}
+
+### A3 拒绝不存在的权限
+PUT {{baseUrl}}/admin/roles/public/permissions
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"permission_codes":[
+  "kb.view_public",
+  "kb.not_exists"
+]}
+
+### A3 角色不存在
+PUT {{baseUrl}}/admin/roles/not_exists/permissions
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"permission_codes":["kb.view_public"]}
+
+### A3 普通用户无权修改角色权限
+PUT {{baseUrl}}/admin/roles/public/permissions
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"permission_codes":["kb.view_public"]}
+
+
+###
+@PublicUserId=2
+
+### A4 保持普通测试用户为public
+PUT {{baseUrl}}/admin/users/{{PublicUserId}}/role
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"role_code":"public"}
+
+### A4 角色不存在
+PUT {{baseUrl}}/admin/users/{{PublicUserId}}/role
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"role_code":"not_exists"}
+
+### A4 用户不存在（自增id不为0）
+PUT {{baseUrl}}/admin/users/0/role
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"role_code":"public"}
+
+### A4 普通用户无权设置用户角色
+PUT {{baseUrl}}/admin/users/{{PublicUserId}}/role
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"role_code":"public"}
+
+### A4 将普通测试账号临时设为admin
+PUT {{baseUrl}}/admin/users/{{PublicUserId}}/role
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"role_code":"admin"}
+
+### A4 使用该账号原来的publicToken查询本人
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{publicToken}}
+
+### A4 把测试账号恢复为public
+PUT {{baseUrl}}/admin/users/{{PublicUserId}}/role
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"role_code":"public"}
+
+### A4 普通测试账号重新登录
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "account": "9999@qq.com",
+  "password": "123456"
+}
+
+### A4 确认普通测试账号身份
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{publicToken}}
+
+
+### 知识问答：CH03-01 工作时间与午休
+POST {{baseUrl}}/knowledge/ask
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"question":"公司工作日几点上班、几点下班？午休算工作时间吗？"}
+
+### 知识问答：CH03-02 补卡时间与超次数处理
+POST {{baseUrl}}/knowledge/ask
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"question":"漏打卡后多久内补卡？一个月超过三次还能申请吗？"}
+
+### 知识问答：CH03-03 杭州住宿标准
+POST {{baseUrl}}/knowledge/ask
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"question":"去杭州出差，每晚住宿上限是多少？"}
+
+
+### 请假查询CH04-A1 账号A：看本人的两条演示单
+GET {{baseUrl}}/leave/requests
+Authorization: Bearer {{publicToken}}
+
+### 请假查询CH04-A2 账号B：看本人的一条演示单
+GET {{baseUrl}}/leave/requests
+Authorization: Bearer {{otherToken}}
+
+### 请假查询CH04-A3 HR：看A和B的三条演示单
+GET {{baseUrl}}/leave/requests
+Authorization: Bearer {{hrToken}}
+
+### CH04-B1 先看已有记录，记住基线
+GET {{baseUrl}}/leave/requests
+Authorization: Bearer {{publicToken}}
+
+### CH04-B2 创建待确认摘要
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"年假 2026-10-12 09:00 到 2026-10-12 18:00 原因：个人安排"}
+
+> {%
+client.global.set("ch04Session", response.body.session_id);
+%}
+
+### CH04-B3 在同一会话确认
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","session_id":"{{ch04Session}}"}
+
+> {%
+client.global.set("ch04LeaveId", response.body.leave_id);
+%}
+
+### CH04-B4 查看刚刚生成的单号
+GET {{baseUrl}}/leave/requests
+Authorization: Bearer {{publicToken}}
+
+### CH04-C1 HR批准B3创建的申请
+POST {{baseUrl}}/leave/{{ch04LeaveId}}/approve
+Authorization: Bearer {{hrToken}}
+Content-Type: application/json
+
+{"reason":"同意"}
+
+### CH04-C2 新建事假待办
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"事假 2026-10-13 09:00 到 2026-10-13 18:00 原因：家庭事务"}
+
+> {%
+client.global.set("ch04RejectSession", response.body.session_id);
+%}
+
+### CH04-C3 确认第二张新申请
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","session_id":"{{ch04RejectSession}}"}
+
+> {%
+client.global.set("ch04RejectId", response.body.leave_id);
+%}
+
+### CH04-C4 HR驳回
+POST {{baseUrl}}/leave/{{ch04RejectId}}/reject
+Authorization: Bearer {{hrToken}}
+Content-Type: application/json
+
+{"reason":"请调整日期"}
+
+### CH04-C5 新建待办
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"年假 2026-10-14 09:00 到 2026-10-14 18:00 原因：个人安排"}
+
+> {%
+client.global.set("ch04CancelSession", response.body.session_id);
+%}
+
+### CH04-C6 确认第三张新申请
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","session_id":"{{ch04CancelSession}}"}
+
+> {%
+client.global.set("ch04CancelId", response.body.leave_id);
+%}
+
+### CH04-C7 本人撤销
+POST {{baseUrl}}/leave/{{ch04CancelId}}/cancel
+Authorization: Bearer {{publicToken}}
+
+### ================= 路径一：申请 -> 确认 -> HR驳回 =================
+
+### CH04-T1 新建事假待办
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"事假 2026-10-13 09:00 到 2026-10-13 18:00 原因：家庭事务"}
+
+> {%
+    client.global.set("ch04RejectSession", response.body.session_id);
+%}
+
+### CH04-T2 确认新申请
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","session_id":"{{ch04RejectSession}}"}
+
+> {%
+    client.global.set("ch04RejectId", response.body.leave_id);
+%}
+
+### CH04-T3 HR驳回
+POST {{baseUrl}}/leave/{{ch04RejectId}}/reject
+Authorization: Bearer {{hrToken}}
+Content-Type: application/json
+
+{"reason":"请调整日期"}
+
+
+### ================= 路径二：申请 -> 确认 -> 本人撤销 =================
+
+### CH04-T4 新建年假待办
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"年假 2026-10-14 09:00 到 2026-10-14 18:00 原因：个人安排"}
+
+> {%
+    client.global.set("ch04CancelSession", response.body.session_id);
+%}
+
+### CH04-T5 确认新申请
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","session_id":"{{ch04CancelSession}}"}
+
+> {%
+    client.global.set("ch04CancelId", response.body.leave_id);
+%}
+
+### CH04-T6 本人撤销
+POST {{baseUrl}}/leave/{{ch04CancelId}}/cancel
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{}
+
+
+### ================= 路径三：申请 -> 确认 -> HR批准 (补充的完整闭环) =================
+
+### CH04-T7 新建病假待办
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"病假 2026-10-15 09:00 到 2026-10-15 18:00 原因：身体不适"}
+
+> {%
+    client.global.set("ch04ApproveSession", response.body.session_id);
+%}
+
+### CH04-T8 确认新申请
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","session_id":"{{ch04ApproveSession}}"}
+
+> {%
+    client.global.set("ch04ApproveId", response.body.leave_id);
+%}
+
+### CH04-T9 HR批准
+POST {{baseUrl}}/leave/{{ch04ApproveId}}/approve
+Authorization: Bearer {{hrToken}}
+Content-Type: application/json
+
+{"reason":"同意休假，注意身体"}
+
+
+### ================= 1. 验证：摘要提示格式问题 =================
+# 故意不写原因，或者时间格式不全，触发 missing_fields 校验
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"事假 2026-10-13 09:00 原因：格式测试"}
+
+> {%
+    // 预期：响应中 retrieval_status 应为 "missing_fields"
+    client.global.set("formatTestSession", response.body.session_id);
+%}
+
+
+### ================= 2. 验证：确认说没有待办 =================
+# 故意使用一个错误的 session_id 进行确认
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认", "session_id":"invalid-session-id-12345"}
+
+> {%
+    // 预期：响应中 retrieval_status 应为 "no_pending_leave"
+%}
+
+
+### ================= 3. 验证：Session 返回 409 =================
+# 先正常发起一个申请
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"年假 2026-10-14 09:00 到 2026-10-14 18:00 原因：休息"}
+
+> {%
+    client.global.set("session409Test", response.body.session_id);
+%}
+
+### 确认它，使其变成真正的请假单（此时 Session 应该失效或被清理）
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认", "session_id":"{{session409Test}}"}
+
+> {%
+    client.global.set("leaveId409Test", response.body.leave_id);
+%}
+
+### 再次用同一个 session_id 确认，触发 Session 409 冲突
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认", "session_id":"{{session409Test}}"}
+
+> {%
+    // 预期：响应中 retrieval_status 应为 "leave_already_created" 或类似冲突状态
+%}
+
+
+### ================= 4. 验证：批准或撤销返回 409 =================
+# 正常申请并确认一张新单子
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"病假 2026-10-15 09:00 到 2026-10-15 18:00 原因：看病"}
+
+> {%
+    client.global.set("session409Approve", response.body.session_id);
+%}
+
+### 确认它
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认", "session_id":"{{session409Approve}}"}
+
+> {%
+    client.global.set("leaveId409Approve", response.body.leave_id);
+%}
+
+### HR 批准它
+POST {{baseUrl}}/leave/{{leaveId409Approve}}/approve
+Authorization: Bearer {{hrToken}}
+Content-Type: application/json
+
+{"reason":"同意"}
+
+### 再次尝试批准（状态已不是 PENDING），预期返回 409
+POST {{baseUrl}}/leave/{{leaveId409Approve}}/approve
+Authorization: Bearer {{hrToken}}
+Content-Type: application/json
+
+{"reason":"重复批准测试"}
+
+> {%
+    // 预期：HTTP 409 Conflict
+%}
+
+### 尝试撤销已经批准的单据，预期返回 409
+POST {{baseUrl}}/leave/{{leaveId409Approve}}/cancel
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{}
+
+> {%
+    // 预期：HTTP 409 Conflict
+%}
+
+
+### ================= 5. 验证：越权操作返回 403 =================
+# 用普通账号的 Token 去调用 HR 的审批接口
+POST {{baseUrl}}/leave/{{leaveId409Approve}}/approve
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"reason":"普通员工越权审批测试"}
+
+> {%
+    // 预期：HTTP 403 Forbidden
+%}
+
+
+### CH05-01 固定知识问答
+POST {{baseUrl}}/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"text":"漏打卡后多久内补卡？一个月超过三次还能申请吗？","mode":"qa"}
+
+### CH05-02 固定请假查询
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"查询我的请假记录","mode":"leave"}
+
+### CH05-03 自动生成请假摘要
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"申请年假 2026-10-12 09:00 到 2026-10-12 18:00 原因：家庭事务","mode":"auto"}
+
+> {% client.global.set("ch05Session", response.body.session_id); %}
+
+### CH05-04 同一会话临时问制度
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"去杭州出差，每晚住宿上限是多少？","mode":"qa","session_id":"{{ch05Session}}"}
+
+### CH05-05 确认原申请
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","mode":"auto","session_id":"{{ch05Session}}"}
+
+> {% client.global.set("ch05LeaveId", response.body.leave_id); %}
+
+
+### CH06-A01 DeepSeek回答已上传制度
+POST {{baseUrl}}/knowledge/ask
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"question":"公司工作日几点上班、几点下班？午休算工作时间吗？"}
+
+### CH06-C01 模型选择知识工具
+POST {{baseUrl}}/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"text":"公司工作日几点上班、几点下班？午休算工作时间吗？","mode":"auto"}
+
+### CH06-C02 模型选择本人请假查询工具
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"请使用工具查询我的请假记录。","mode":"auto"}
+
+### CH06-C03 创建待确认申请
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"申请事假 2026-10-13 09:00 到 2026-10-13 18:00 原因：办理个人事务","mode":"auto"}
+
+> {% client.global.set("ch06Session", response.body.session_id); %}
+
+### CH06-C04 同一会话临时查询制度
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"去杭州出差，每晚住宿上限是多少？","mode":"auto","session_id":"{{ch06Session}}"}
+
+### CH06-C05 确认原申请
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","mode":"auto","session_id":"{{ch06Session}}"}
+
+> {% client.global.set("ch06LeaveId", response.body.leave_id); %}
+
+
+### CH07-01 单知识任务
+POST {{baseUrl}}/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"text":"查询办公时间与考勤制度","mode":"auto"}
+
+### CH07-02 单请假查询
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"我的请假","mode":"auto"}
+
+### CH07-03 复合任务
+POST {{baseUrl}}/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"text":"说明公司办公时间与考勤制度，并查询我的请假记录。","mode":"auto"}
+
+### CH07-04 建立待确认申请
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"我要请假：年假，2026-10-12 09:00 到 2026-10-12 18:00，原因：办理个人事务","mode":"auto"}
+
+> {% client.global.set("ch07Session", response.body.session_id); %}
+
+### CH07-05 复合查询不能清除草稿
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"说明办公时间与考勤制度，并查询我的请假记录","mode":"auto","session_id":"{{ch07Session}}"}
+
+### CH07-06 不同账号不能接管会话
+POST {{baseUrl}}/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"text":"确认","mode":"auto","session_id":"{{ch07Session}}"}
+
+### CH07-07 原用户确认
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","mode":"auto","session_id":"{{ch07Session}}"}
+
+> {% client.global.set("ch07LeaveId", response.body.leave_id); %}
+
+### CH07-08 重复确认
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"确认","mode":"auto","session_id":"{{ch07Session}}"}
+
+
+### CH08-01 查询已上传制度的证据
+POST {{baseUrl}}/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"text":"查询公司知识库：明川科技的标准办公时间、午休时间及上下班打卡要求是什么？请标注证据来源。","mode":"qa"}
+
+### CH08-02 普通用户查询相同制度问题
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"查询公司知识库：明川科技的标准办公时间、午休时间及上下班打卡要求是什么？请标注证据来源。","mode":"qa"}
+
+### CH08-03 确定性请假查询
+POST {{baseUrl}}/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"查询我的请假记录","mode":"leave"}
+
+### CH08-04 复合任务
+POST {{baseUrl}}/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"text":"说明公司的办公时间与考勤制度，并查询我的请假记录","mode":"auto"}
+
+
+### CH09-01 保存转写文本并建立索引
+POST {{baseUrl}}/audio/transcripts
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "明川科技内部知识库使用规范",
+  "visibility": "internal",
+  "transcript": "明川科技企业内部知识库主要用于统一管理公司制度、产品资料、业务流程、培训内容和操作说明，帮助员工快速查询工作中需要的信息。知识库中的资料分为公开资料和内部资料。公开资料可以供普通员工查询，例如常用办公流程、产品基础介绍和通用培训内容。内部资料仅限具有相应权限的员工访问，例如客户项目文档、部门内部规范和未公开的产品信息。员工上传资料时，必须根据内容选择正确的可见范围，不得为了方便随意设置为公开。知识库禁止上传账号密码、身份证号码、银行卡信息、客户隐私、未授权的合同原件，以及其他不应被集中检索的敏感信息。如果资料中包含敏感字段，应先进行脱敏处理，再由管理员审核后上传。对于来源不明、已经失效或者无法确认真实性的内容，也不应直接加入知识库。员工使用知识助手查询问题时，应尽量描述清楚具体业务场景。系统会优先根据知识库中的现有资料给出回答。如果现有资料不足以支持回答，系统应明确提示证据不足，而不能自行编造答案。公司制度发生调整、产品版本升级或者业务流程变化后，资料负责人应及时更新知识库中的相关内容。对于已经废止的文件，应及时下线或者删除，避免员工继续使用旧版本。涉及重要业务决策时，员工仍应以公司最新正式制度、审批结果和负责人通知为准。"
+}
+
+> {%
+if (response.status === 201) {
+    client.global.set("transcriptAudioId", response.body.audio_id);
+}
+%}
+
+### CH09-02 查询音频详情
+GET {{baseUrl}}/audio/{{transcriptAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH09-03 上传真实音频并完成转写入库
+POST {{baseUrl}}/audio/ingest
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data; boundary=AudioBoundary
+
+--AudioBoundary
+Content-Disposition: form-data; name="visibility"
+
+internal
+--AudioBoundary
+Content-Disposition: form-data; name="file"; filename="mingchuan_knowledge.mp3"
+Content-Type: audio/mpeg
+
+< ./data/sample/mingchuan_knowledge.mp3
+--AudioBoundary--
+
+> {%
+if (response.status === 201) {
+    client.global.set("realAudioId", response.body.audio_id);
+    client.global.set("realSegmentIdx", response.body.segments[0].segment_idx);
+}
+%}
+
+### CH09-04 按知识片段裁剪
+GET {{baseUrl}}/audio/{{realAudioId}}/clip?segment_idx={{realSegmentIdx}}
+Authorization: Bearer {{adminToken}}
+
+### CH09-05 按时间范围裁剪前 1 秒
+GET {{baseUrl}}/audio/{{realAudioId}}/clip?start_ms=0&end_ms=1000
+Authorization: Bearer {{adminToken}}
+
+
+### CH10-01 核对上一章真实音频
+GET {{baseUrl}}/audio/{{realAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH10-02 查询内部资料访问权限
+GET {{baseUrl}}/audio/query?q=内部资料需要什么权限才能访问？&k=4&audio_id={{realAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH10-03 查询敏感字段处理方式
+GET {{baseUrl}}/audio/query?q=资料中包含敏感字段时应该怎么处理？&k=4&audio_id={{realAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH10-04 查询证据不足时如何回答
+GET {{baseUrl}}/audio/query?q=知识库资料不足时系统应该怎么回答？&k=4&audio_id={{realAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH10-05 public 用户不能获得 internal 真实音频
+GET {{baseUrl}}/audio/query?q=资料中包含敏感字段时应该怎么处理？&k=4&audio_id={{realAudioId}}
+Authorization: Bearer {{publicToken}}
+
+### CH10-06 无 Token
+GET {{baseUrl}}/audio/query?q=内部资料需要什么权限才能访问？&k=4&audio_id={{realAudioId}}
+
+### CH10-07 k 超范围
+GET {{baseUrl}}/audio/query?q=内部资料需要什么权限才能访问？&k=11&audio_id={{realAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH10-08 纯空白问题
+GET {{baseUrl}}/audio/query?q=%20%20%20&k=4&audio_id={{realAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH10-09 根据上一章真实音频回答
+POST {{baseUrl}}/audio/ask/stream
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "question": "资料中包含敏感字段时应该怎么处理？",
+    "k": 4,
+    "audio_id": "{{realAudioId}}"
+}
+
+### CH10-10 public 用户指定 internal 音频
+POST {{baseUrl}}/audio/ask/stream
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{
+    "question": "资料中包含敏感字段时应该怎么处理？",
+    "k": 4,
+    "audio_id": "{{realAudioId}}"
+}
+
+### CH10-11 指定不存在的音频
+POST {{baseUrl}}/audio/ask/stream
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "question": "资料中包含敏感字段时应该怎么处理？",
+    "k": 4,
+    "audio_id": "aud-not-exist"
+}
+
+### CH10-12 纯空白问题
+POST {{baseUrl}}/audio/ask/stream
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "question": " ",
+    "k": 4
+}
+
+### CH10-13 k 不能为零
+POST {{baseUrl}}/audio/ask/stream
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "question": "资料中包含敏感字段时应该怎么处理？",
+    "k": 0
+}
+
+### CH10-14 真实模型流式回答
+POST {{baseUrl}}/audio/ask/stream
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "question": "资料中包含敏感字段时应该怎么处理？",
+    "k": 4,
+    "audio_id": "{{realAudioId}}"
+}
+
+
+### CH11-T01 Worker停止时提交文本
+POST {{baseUrl}}/audio/jobs/transcripts
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"title":"异步文本验收","visibility":"internal","transcript":"星云知识助手本季度验收重点是权限审计和音频检索。"}
+
+> {%
+if (response.status === 202) {
+    client.global.set("jobId", response.body.job_id);
+    client.global.set("jobAudioId", response.body.audio_id);
+}
+%}
+
+### CH11-T02 Worker停止时查询排队
+GET {{baseUrl}}/audio/jobs/{{jobId}}
+Authorization: Bearer {{adminToken}}
+
+### CH11-T03 查询已处理任务
+GET {{baseUrl}}/audio/jobs/{{jobId}}
+Authorization: Bearer {{adminToken}}
+
+### CH11-T04 从FastAPI查询Worker写入的音频
+GET {{baseUrl}}/audio/{{jobAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH11-T05 不存在任务
+GET {{baseUrl}}/audio/jobs/job-not-exist
+Authorization: Bearer {{adminToken}}
+
+### CH11-T06 普通用户查询管理任务
+GET {{baseUrl}}/audio/jobs/{{jobId}}
+Authorization: Bearer {{publicToken}}
+
+### CH11-T07 未登录查询
+GET {{baseUrl}}/audio/jobs/{{jobId}}
+
+### 上传真实音频异步处理
+POST {{baseUrl}}/audio/jobs
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data; boundary=AudioJobBoundary
+
+--AudioJobBoundary
+Content-Disposition: form-data; name="visibility"
+
+internal
+--AudioJobBoundary
+Content-Disposition: form-data; name="file"; filename="meeting.mp3"
+Content-Type: audio/mpeg
+
+< ./data/sample/meeting.mp3
+--AudioJobBoundary--
+
+> {%
+if (response.status === 202) {
+    client.global.set("asrJobId", response.body.job_id);
+    client.global.set("asrAudioId", response.body.audio_id);
+}
+%}
+
+### 查询真实音频任务
+GET {{baseUrl}}/audio/jobs/{{asrJobId}}
+Authorization: Bearer {{adminToken}}
+
+### 查询真实音频处理结果
+GET {{baseUrl}}/audio/{{asrAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### 创建待取消任务（必须先停止 Worker）
+POST {{baseUrl}}/audio/jobs/transcripts
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "取消任务验收",
+  "visibility": "internal",
+  "transcript": "这条排队任务应在 Worker 开始前被取消。"
+}
+
+> {%
+if (response.status === 202) {
+    client.global.set("cancelJobId", response.body.job_id);
+    client.global.set("cancelAudioId", response.body.audio_id);
+}
+%}
+
+### 取消排队任务
+POST {{baseUrl}}/audio/jobs/{{cancelJobId}}/cancel
+Authorization: Bearer {{adminToken}}
+
+### 再查取消结果
+GET {{baseUrl}}/audio/jobs/{{cancelJobId}}
+Authorization: Bearer {{adminToken}}
+
+### 再查音频状态
+GET {{baseUrl}}/audio/{{cancelAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### 重复取消
+POST {{baseUrl}}/audio/jobs/{{cancelJobId}}/cancel
+Authorization: Bearer {{adminToken}}
+
+### 取消已成功任务
+POST {{baseUrl}}/audio/jobs/{{jobId}}/cancel
+Authorization: Bearer {{adminToken}}
+
+### CH11-S01 保存待确认摘要
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"text":"年假 2026-10-12 09:00 到 2026-10-12 18:00 原因：休息"}
+
+> {%
+if (response.status === 200 && response.body.retrieval_status === "leave_pending") {
+    client.global.set("redisSessionId", response.body.session_id);
+}
+%}
+
+### CH11-S02 先停止并重启API，再确认同一草稿
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"session_id":"{{redisSessionId}}","text":"确认"}
+
+> {%
+if (response.status === 200) { client.global.set("redisLeaveId", response.body.leave_id); }
+%}
+
+### CH11-S03 重复确认
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"session_id":"{{redisSessionId}}","text":"确认"}
+
+### CH11-S04 另一个管理员账号不能接管该会话
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"session_id":"{{redisSessionId}}","text":"确认"}
+
+### CH11-S05 不存在会话
+POST {{baseUrl}}/leave/chat
+Authorization: Bearer {{publicToken}}
+Content-Type: application/json
+
+{"session_id":"not-an-existing-session","text":"确认"}
+
+
+### CH12-01 等待 ES 就绪
+GET http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=30s
+
+### CH12-02 创建本章内部材料
+POST {{baseUrl}}/audio/transcripts
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "OPS2026 上线要求",
+  "visibility": "internal",
+  "transcript": "项目代号 OPS2026，音频检索上线前必须完成权限审计。"
+}
+
+> {%
+if (response.status === 201 && response.body.status === "ready") {
+    client.global.set("hybridAudioId", response.body.audio_id);
+}
+%}
+
+### CH12-03 检查本次材料的关键词索引
+GET http://127.0.0.1:9200/audio_segments_course_v1/_search
+Content-Type: application/json
+
+{
+  "query": {
+    "term": {"audio_id": "{{hybridAudioId}}"}
+  }
+}
+
+### CH12-04 混合查询与去重
+GET {{baseUrl}}/audio/query/hybrid?q=项目代号 OPS2026，音频检索上线前必须完成权限审计。&k=5&audio_id={{hybridAudioId}}
+Authorization: Bearer {{adminToken}}
+
+### CH12-05 public 用户查询内部材料
+GET {{baseUrl}}/audio/query/hybrid?q=OPS2026&k=5&audio_id={{hybridAudioId}}
+Authorization: Bearer {{publicToken}}
+
+### CH12-06 基于混合证据的流式回答
+POST {{baseUrl}}/audio/ask/hybrid/stream
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "question": "OPS2026 音频检索上线前必须完成什么？",
+  "k": 4,
+  "audio_id": "{{hybridAudioId}}"
+}
+
